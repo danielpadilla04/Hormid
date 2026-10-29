@@ -557,7 +557,8 @@ function svgElev(P,T){const hn=P.hn,Hh=560,s=Hh/hn,w=Math.min(110,Math.max(50,P.
 // ---- DATO: fórmula, datos personales y tabla del enunciado. Cambian en cada ejercicio: todo es editable y se guarda en este navegador ----
 let RHO={};const LSg=k=>{try{return localStorage.getItem(k)}catch(e){return null}},LSs=(k,x)=>{try{localStorage.setItem(k,x)}catch(e){}};
 const FN=["sqrt","pow","abs","round","min","max","log","log10","exp","floor","ceil","trunc","PI"],PERK=["A","M","D","CED","U1","U2","U3","SC"];
-["yA","yM","yD","yC"].forEach(id=>{$(id).value=LSg("hd_"+id)||"";$(id).addEventListener("input",()=>LSs("hd_"+id,$(id).value))});
+const PER_DEF={yA:"2004",yM:"10",yD:"16",yC:"0750555542"};
+["yA","yM","yD","yC"].forEach(id=>{$(id).value=LSg("hd_"+id)??PER_DEF[id];$(id).addEventListener("input",()=>LSs("hd_"+id,$(id).value))});
 function persVals(){const c=($("yC").value||"").replace(/\D/g,""),n=s=>s===""?NaN:+s;
  return{A:n($("yA").value),M:n($("yM").value),D:n($("yD").value),CED:n(c),U1:n(c.slice(-1)),U2:n(c.slice(-2)),U3:n(c.slice(-3)),SC:c?[...c].reduce((t,x)=>t+ +x,0):NaN}}
 const fVars=ex=>[...new Set((ex.match(/[A-Za-z_]\w*/g)||[]).filter(x=>!FN.includes(x)))];
