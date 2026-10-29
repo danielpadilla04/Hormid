@@ -1,5 +1,5 @@
 // HORMID: funciona sin internet. La página se pide primero a la red (para recibir actualizaciones) y, si no hay conexión, sale de la caché.
-const CACHE = "hormid-v1";
+const CACHE = "hormid-v2";
 const BASE = ["./", "index.html", "manifest.webmanifest", "html2pdf.bundle.min.js", "icon-192.png", "icon-512.png", "apple-touch-icon.png"];
 
 self.addEventListener("install", e => {

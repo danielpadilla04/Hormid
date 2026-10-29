@@ -137,6 +137,11 @@ textarea{background:var(--panel2);color:#fff;border:0;box-shadow:inset 0 0 0 1px
 .rep .pc{background:#f5f6fa}.rep>.ps,.rep>.pc,.rep>.cgrp{margin-bottom:12px}.rep summary::after{content:none!important}.rep .ps,.rep .pcard,.rep .scard,.rep .kpi,.rep .colc{background:#f7f8fb}
 .rep table.rdat{width:auto;font-size:11.5px}.rep table.rdat td{text-align:left;padding:3px 10px 3px 0;white-space:normal}.rep .rin{background:#fff;color:#111;width:56px}
 .rep table.ct thead{display:table-header-group}.rep table.ct td{font-size:10.5px;padding:4px 5px;white-space:normal}.rep table.ct th{font-size:9.5px;padding:4px 5px}
+/* ---- Módulo 4: edificio por pisos ---- */
+.pft{font-size:12px}.pft th,.pft td{padding:3px;text-align:left;white-space:nowrap}.pft input{padding:6px;font-size:12.5px;min-width:52px}.pft td:first-child input{min-width:104px}
+.pgr{display:grid;gap:4px;margin-top:8px;grid-auto-rows:46px}
+.pce{font:11px var(--fm);border:0;border-radius:6px;background:rgba(186,214,247,.03);color:var(--sub);box-shadow:inset 0 0 0 1px var(--line);cursor:pointer;padding:0;overflow:hidden;min-width:0}
+.pce.on{background:rgba(102,58,243,.38);color:#fff;box-shadow:inset 0 0 0 1px rgba(102,58,243,.85)}.pce.vol{outline:1px dashed rgba(186,215,247,.4);outline-offset:-4px}
 @media(max-width:600px){#cTab td:nth-child(2),#cTab th:nth-child(2),#cTab td:nth-child(3),#cTab th:nth-child(3),#cTab td:nth-child(6),#cTab th:nth-child(6){display:none}#cTab td,#cTab th{padding:6px 4px;font-size:11.5px;white-space:normal}#cTab th{font-size:10px;letter-spacing:.03em}.rin{width:50px;padding:4px}}
 </style>
 
@@ -146,10 +151,11 @@ textarea{background:var(--panel2);color:#fff;border:0;box-shadow:inset 0 0 0 1px
 <button data-m="carga" class="on">1 · Evaluación de cargas</button>
 <button data-m="flexo">2 · Flexocompresión biaxial</button>
 <button data-m="esb">3 · Columnas esbeltas</button>
+<button data-m="pisos">4 · Edificio por pisos</button>
 </nav>
 <div class="units"><label>Sistema<select id="uSis"><option value="0">SI (kN-mm-MPa)</option><option value="1">US (kip-in-ksi)</option><option value="2">MKS (tonf-cm-kgf/cm²)</option><option value="3">Mixto</option></select></label>
 <label>Fuerza<select id="uF"></select></label><label>Longitud<select id="uL"></select></label><label>Esfuerzo<select id="uS"></select></label><label>Momento<select id="uM"></select></label></div>
-<div class="units"><label style="min-width:190px">Reporte PDF paso a paso<select id="pMod"><option value="act">Módulo actual</option><option value="carga">1 · Cargas y predimensionamiento</option><option value="flexo">2 · Flexocompresión biaxial</option><option value="esb">3 · Columnas esbeltas</option><option value="all">Los 3 módulos</option></select></label>
+<div class="units"><label style="min-width:190px">Reporte PDF paso a paso<select id="pMod"><option value="act">Módulo actual</option><option value="carga">1 · Cargas y predimensionamiento</option><option value="flexo">2 · Flexocompresión biaxial</option><option value="esb">3 · Columnas esbeltas</option><option value="pisos">4 · Edificio por pisos</option><option value="all">Todos los módulos</option></select></label>
 <label style="min-width:190px">Estudiante / curso<input id="pAut" placeholder="Nombre · Hormigón II"></label><button class="btn" id="pdfGo">⬇ Generar PDF</button><span class="note" id="pMsg" style="align-self:center"></span></div>
 <div class="units"><label>Año de nacimiento (A)<input id="yA" type="number" placeholder="2004"></label><label>Mes (M)<input id="yM" type="number" min="1" max="12" placeholder="5"></label><label>Día (D)<input id="yD" type="number" min="1" max="31" placeholder="15"></label>
 <label style="min-width:170px">Cédula (CED)<input id="yC" inputmode="numeric" placeholder="opcional"></label>
@@ -257,6 +263,53 @@ textarea{background:var(--panel2);color:#fff;border:0;box-shadow:inset 0 0 0 1px
 <div class="row"><button class="btn" id="eGo">Calcular</button><button class="btn amb" id="eSend">Enviar Mc a flexocompresión</button></div>
 </div>
 <div class="res"><div id="eVer"></div><div class="card"><h2>Resultados</h2><div class="kpis" id="eKpi"></div></div><div class="card"><h2>Momentos y esbeltez</h2><div class="svgw" id="eGraf"></div></div><details class="card" open><summary><h2>Paso a paso</h2></summary><pre class="steps" id="eSteps"></pre></details></div>
+</section>
+
+<!-- ============ MÓDULO 4 ============ -->
+<section id="m-pisos" class="mod" hidden>
+<div class="card">
+<h2>Edificio con pisos distintos</h2>
+<p class="note" style="margin-top:-4px">Cargas distintas en cada losa, sobrecubierta parcial, voladizos parciales, peso de losa y vigas, y columnas de pisos superiores dadas. Calcula piso por piso desde arriba hasta la cimentación. Unidades: m, kN, mm, MPa.</p>
+<div class="row" style="margin-top:6px"><button class="btn sec" id="pEj">Cargar ejemplo · Prueba 29/10/2026</button></div>
+<h3>DATO</h3>
+<label>Fórmula de DATO (o escribe el valor)<input id="pDf" autocomplete="off" placeholder="U3 + CED/10^8"></label>
+<label style="margin-top:6px"><span><input id="pDr" type="checkbox" checked style="width:auto"> Redondear DATO al entero</span></label>
+<p class="note" id="pDv" style="margin:4px 0 0"></p>
+<h3>Luces (m)</h3>
+<label>Luces en X separadas por ; (pueden usar DATO, X1, X2…)<input id="pX" autocomplete="off" placeholder="(2026+DATO)/385; 1.15*X1"></label>
+<label style="margin-top:6px">Luces en Y separadas por ; (pueden usar DATO, X1…, Y1…)<input id="pY" autocomplete="off" placeholder="0.83*X1; 0.95*X1"></label>
+<label style="margin-top:6px"><span><input id="pR2" type="checkbox" checked style="width:auto"> Redondear luces a 2 decimales</span></label>
+<div class="g" style="margin-top:8px"><label>Voladizo X al inicio (m)<input id="pvx0" type="number" step="0.01" value="0"></label><label>Voladizo X al final (m)<input id="pvx1" type="number" step="0.01" value="0"></label>
+<label>Voladizo Y al inicio (m)<input id="pvy0" type="number" step="0.01" value="0"></label><label>Voladizo Y al final (m)<input id="pvy1" type="number" step="0.01" value="0"></label></div>
+<p class="note" id="pLv" style="margin:6px 0 0"></p>
+<h3>Pisos, de arriba hacia abajo</h3>
+<div class="tw"><table class="pft" id="pFl"></table></div>
+<div class="row" style="margin-top:8px"><button class="btn sec" id="pFa">+ Piso arriba</button><button class="btn sec" id="pFr">− Quitar el de arriba</button></div>
+<p class="note" style="margin:6px 0 0">Cada fila es una losa (CM y CV en kN/m²) y el tramo de columna que está debajo de ella. La última fila es la planta baja. Columna vacía = se predimensiona.</p>
+<h3>Paños de losa de cada piso</h3>
+<label>Piso<select id="pFs"></select></label>
+<div id="pGrid"></div>
+<div class="row" style="margin-top:8px"><button class="btn sec" id="pAll">Llenar todo</button><button class="btn sec" id="pCp">Copiar a los pisos de abajo</button></div>
+<p class="note" style="margin:6px 0 0">Toca un paño para quitarlo o ponerlo (violeta = hay losa). Los paños con borde punteado son voladizos. Así se arma una sobrecubierta parcial o un voladizo que no cubre todo el borde.</p>
+<h3>Pesos propios</h3>
+<div class="g g3"><label>Losa t (m)<input id="pt" type="number" step="0.01" value="0.20"></label><label>γ kN/m³<input id="pgam" type="number" step="0.5" value="24"></label><label>Viga b (m)<input id="pvb" type="number" step="0.05" value="0.30"></label><label>Viga h (m)<input id="pvh" type="number" step="0.05" value="0.45"></label></div>
+<label style="margin-top:8px"><span><input id="pLs" type="checkbox" checked style="width:auto"> Sumar el peso de la losa (t·γ) a la CM</span></label>
+<label style="margin-top:4px"><span><input id="pVg" type="checkbox" checked style="width:auto"> Sumar el peso de las vigas b·(h − t)·γ</span></label>
+<h3>Predimensionamiento y armado</h3>
+<div class="g g3"><label>f'c MPa<input id="pfc" type="number" value="28"></label><label>fy MPa<input id="pfy" type="number" value="420"></label><label>Sección mín. mm<input id="psm" type="number" value="300" step="50"></label>
+<label>k esquina<input id="pke" type="number" value="0.3" step="0.05"></label><label>k borde<input id="pkb" type="number" value="0.3" step="0.05"></label><label>k interior<input id="pki" type="number" value="0.3" step="0.05"></label>
+<label>ρ %<input id="prho" type="number" value="1" step="0.1"></label><label>Recubr. mm<input id="prec" type="number" value="40"></label><label>Ø estribo<input id="pest" type="number" value="10"></label></div>
+<label style="margin-top:8px"><span><input id="pNm" type="checkbox" checked style="width:auto"> La columna predimensionada no puede ser menor que la de arriba</span></label>
+<label style="margin-top:8px">Armado longitudinal<select id="parm"><option value="12">12 varillas (como en clase)</option><option value="auto">Menor número de varillas (c/c ≤ 150 mm)</option></select></label>
+<div class="row"><button class="btn" id="pGo">Calcular</button></div>
+<p class="note">P<sub>losa</sub> = q<sub>u</sub>·A<sub>t</sub> + 1.2·w<sub>viga</sub>·L<sub>viga</sub>, con q<sub>u</sub> = 1.2·CM + 1.6·CV. P<sub>u</sub> de cada tramo = P<sub>u</sub> del tramo de arriba + 1.2·su peso propio + P<sub>losa</sub>. A<sub>g</sub> = P<sub>u</sub>/(k·f'c), múltiplos de 50 mm. Descarga a cimentación = P<sub>u,PB</sub> + 1.2·PP<sub>PB</sub>. Vigas sobre los ejes; el voladizo de un eje se suma completo a su columna.</p>
+</div>
+<div class="res">
+<div class="card"><h2>Planta y áreas tributarias</h2><label style="max-width:260px">Planta que se muestra<select id="pPs"></select></label><div class="svgw" id="pPlan" style="margin-top:8px"></div></div>
+<div class="card"><h2>Tabla de resultados</h2><div class="tw" id="pRes"></div></div>
+<details class="card" open><summary><h2>Procedimiento piso por piso</h2></summary><div class="proc" id="pSteps"></div></details>
+<div class="card"><h2>Secciones de planta baja</h2><div class="sgrid" id="pSec"></div></div>
+</div>
 </section>
 </main>
 
@@ -416,7 +469,7 @@ $("uSis").onchange=()=>{const p=PRESET[$("uSis").value];if(p)cambiarU({F:p[0],L:
 for(const d of["F","L","S","M"])$("u"+d).onchange=()=>{$("uSis").value=3;cambiarU({...US,[d]:+$("u"+d).value})};
 
 document.querySelectorAll("#nav button").forEach(b=>b.onclick=()=>show(b.dataset.m));
-function show(m){document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.m==m));["carga","flexo","esb"].forEach(k=>$("m-"+k).hidden=k!=m);scrollTo({top:0})}
+function show(m){document.querySelectorAll("#nav button").forEach(b=>b.classList.toggle("on",b.dataset.m==m));["carga","flexo","esb","pisos"].forEach(k=>$("m-"+k).hidden=k!=m);scrollTo({top:0})}
 for(const id of["fd1","fd2"])$(id).innerHTML=DIAS.map(d=>`<option>${d}</option>`).join("");
 const ok=(b,w)=>b?'<i class="okc">✓</i>':w?'<i class="wc">!</i>':'<i class="badc">✗</i>';
 const chkRow=(b,t,val,w)=>`${ok(b,w)}<span>${t}</span><span>${val}</span>`;
@@ -769,7 +822,7 @@ function svgEsb(o,E){const A_=E.tipo=="a",m1=A_?Math.abs(E.M1):E.m1n+E.m1s,m2=A_
 // primero la copia local (funciona sin internet en la app instalada); si no está, la del CDN
 let H2P=null;const js=src=>new Promise((ok,no)=>{const sc=document.createElement("script");sc.src=src;sc.onload=ok;sc.onerror=()=>{sc.remove();no()};document.head.append(sc)});
 const cargaLib=()=>H2P||(H2P=js("html2pdf.bundle.min.js").catch(()=>js("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js")).catch(e=>{H2P=null;throw e}));
-const NOMS={carga:"1 · Evaluación de cargas y predimensionamiento",flexo:"2 · Flexocompresión biaxial (Bresler)",esb:"3 · Columnas esbeltas (magnificación de momentos)"};
+const NOMS={carga:"1 · Evaluación de cargas y predimensionamiento",flexo:"2 · Flexocompresión biaxial (Bresler)",esb:"3 · Columnas esbeltas (magnificación de momentos)",pisos:"4 · Edificio por pisos: cargas y descarga a cimentación"};
 function cl(id){const n=$(id).cloneNode(true);n.removeAttribute("id");n.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));n.querySelectorAll("details").forEach(d=>d.open=true);n.querySelectorAll("button").forEach(b=>b.remove());
  n.querySelectorAll("input").forEach(i=>i.replaceWith(i.value));n.querySelectorAll("p.pt").forEach(p=>{if(/^Toca cada/.test(p.textContent))p.remove()});return n}
 // html2canvas no respeta el viewBox de los SVG: se pasan a PNG con una paleta clara para imprimir
@@ -792,8 +845,9 @@ function repMod(m){const S=document.createElement("section");S.className="rsec";
  if(m=="carga"){if(!COLS.length)calcC();add("Planta y áreas tributarias","cPlan");add("Áreas tributarias y carga axial","cTab");add("Procedimiento paso a paso","cSteps",1);add("Secciones de columnas por piso","cPisos",1);add("Cuadro de columnas","cFin")}
  if(m=="flexo"){calc(true);add("","fVer");add("Sección transversal","fSvg");add("","fLeg");add("Comprobaciones","fKpi");add("","fChk");add("Distribución y estribos","fChk2");add("Estribos en alzado","fElev");add("","fEst");add("Gráficas de interacción utilizadas","fACI");add("Procedimiento paso a paso","fSteps")}
  if(m=="esb"){calcE();add("","eVer");add("Resultados","eKpi");add("Momentos y esbeltez","eGraf");add("Procedimiento paso a paso","eSteps")}
+ if(m=="pisos"){if(!PR)pCalc();add("Planta y áreas tributarias","pPlan");add("Tabla de resultados","pRes");add("Procedimiento piso por piso","pSteps",1);add("Secciones de planta baja","pSec")}
  return S}
-$("pdfGo").onclick=async()=>{const sel=$("pMod").value,act=document.querySelector("#nav button.on").dataset.m,mods=sel=="all"?["carga","flexo","esb"]:[sel=="act"?act:sel];$("pMsg").textContent="Generando PDF…";
+$("pdfGo").onclick=async()=>{const sel=$("pMod").value,act=document.querySelector("#nav button.on").dataset.m,mods=sel=="all"?["carga","flexo","esb","pisos"]:[sel=="act"?act:sel];$("pMsg").textContent="Generando PDF…";
  try{await cargaLib()}catch(e){$("pMsg").textContent="No se pudo cargar el generador de PDF.";return}
  try{const R=await armarRep(mods);R.style.cssText="position:absolute;left:-10000px;top:0";document.body.append(R);
   await Promise.all([...R.querySelectorAll("img")].map(i=>i.decode?i.decode().catch(()=>0):0));
@@ -818,11 +872,132 @@ async function armarRep(mods){const R=document.createElement("div");R.className=
 $("eSend").onclick=()=>{if(!EO)calcE();if(!EO)return;const{o,E}=EO;hist=[];set("fPu",E.Pu);$("fCarga").value=1;$("fCarga").onchange();set(E.h&&$("eDir").value=="x"?"fMxc":"fMyc",0);set(E.h&&$("eDir").value=="x"?"fMx":"fMy",r2(o.Mc));
  if(!v("fh")){set("ffc",E.fc);set("fh",$("eDir").value=="x"?E.h:E.b);set("fb",$("eDir").value=="x"?E.b:E.h);const P=leerF();ponerF({...P,...(arm2(P,.01*P.h*P.b)||{})})}show("flexo");calc()};
 
+// ---------- Módulo 4: edificio por pisos ----------
+// Cada fila de PFL es una losa y el tramo de columna bajo ella. Los paños se indexan (i,j): i = -1 voladizo inicial, 0…nX−1 luces, nX voladizo final (igual en Y).
+const PEJ={df:"U3 + CED/10^8",dr:1,x:"(2026+DATO)/385; 1.15*X1",y:"0.83*X1; 0.95*X1",r2:1,vx0:0,vx1:2,vy0:0,vy1:2.5,t:.2,gam:24,ls:1,vb:.3,vh:.45,vg:1,fc:28,fy:420,sm:300,ke:.3,kb:.3,ki:.3,rho:1,rec:40,est:10,nm:1,arm:"12",
+ fl:[{n:"Sobrecubierta",cm:7.5,cv:.7,h:3,b:350,off:["1,0","2,0","0,1","1,1","2,1","0,2","1,2","2,2"]},{n:"Piso 4",cm:2.5,cv:4.8,h:3.06,b:350,off:["2,0","0,2"]},
+  {n:"Piso 3",cm:5.5,cv:2,h:3.06,b:400,off:["2,0","0,2"]},{n:"Piso 2",cm:5.5,cv:2,h:3.06,b:400,off:["2,0","0,2"]},{n:"Piso 1",cm:5.5,cv:2,h:3.06,b:"",off:["2,0","0,2"]}]};
+const PIDS={df:"pDf",dr:"pDr",x:"pX",y:"pY",r2:"pR2",vx0:"pvx0",vx1:"pvx1",vy0:"pvy0",vy1:"pvy1",t:"pt",gam:"pgam",ls:"pLs",vb:"pvb",vh:"pvh",vg:"pVg",fc:"pfc",fy:"pfy",sm:"psm",ke:"pke",kb:"pkb",ki:"pki",rho:"prho",rec:"prec",est:"pest",nm:"pNm",arm:"parm"};
+const PCOL=["#7aa2f7","#f7768e","#9ece6a","#e0af68","#bb9af7","#7dcfff","#ff9e64","#73daca","#f6c177","#c3e88d","#eba0ac","#89ddff"];
+let PFL=[],PR=null;
+const pn=id=>parseFloat(String($(id).value).replace(",","."))||0,pnum=x=>parseFloat(String(x).replace(",","."))||0;
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const pEx=s=>s.replace(/(\d),(\d)/g,"$1.$2");
+function pPoner(c){for(const k in PIDS){const e=$(PIDS[k]);if(c[k]==null)continue;if(e.type=="checkbox")e.checked=!!c[k];else e.value=c[k]}PFL=JSON.parse(JSON.stringify(c.fl||[]));pTabla();pSel()}
+function pLeer(){const c={};for(const k in PIDS){const e=$(PIDS[k]);c[k]=e.type=="checkbox"?(e.checked?1:0):e.value}c.fl=PFL;return c}
+function pGeo(){const vals=persVals(),o={err:[],vals};let d=NaN;const df=$("pDf").value.trim();
+ if(df){try{d=fEval(pEx(df),vals)}catch(e){o.err.push("DATO: "+e.message)}if(!isFinite(d)&&!o.err.length)o.err.push("DATO: faltan valores ("+fVars(df).filter(x=>!isFinite(vals[x])).join(", ")+"). Escribe tu cédula / fecha arriba.")}
+ o.df=df;o.Dx=d;o.DATO=$("pDr").checked&&isFinite(d)?Math.round(d):d;vals.DATO=o.DATO;const red=$("pR2").checked;
+ for(const ax of["X","Y"]){o[ax]=[];o[ax+"t"]=[];($("p"+ax).value||"").split(/;|\n/).map(s=>s.trim()).filter(Boolean).forEach((s,i)=>{let x=NaN;try{x=fEval(pEx(s),vals)}catch(e){o.err.push(`${ax}${i+1}: ${e.message}`)}
+  const xr=red?r2(x):x;if(!(xr>0))o.err.push(`${ax}${i+1} no es válida`);o[ax].push(xr);o[ax+"t"].push({ex:s,raw:x});vals[ax+(i+1)]=xr})}
+ if(!o.X.length||!o.Y.length)o.err.push("Escribe al menos una luz en X y una en Y");
+ o.vx0=pn("pvx0");o.vx1=pn("pvx1");o.vy0=pn("pvy0");o.vy1=pn("pvy1");return o}
+const pCel=(L,v0,v1,p)=>{const c=[];if(v0>0)c.push({i:-1,L:v0,vol:1,lab:"v"+p+"₀"});L.forEach((x,i)=>c.push({i,L:x,vol:0,lab:p.toLowerCase()+(i+1)}));if(v1>0)c.push({i:L.length,L:v1,vol:1,lab:"v"+p});return c};
+function pTabla(){const n=PFL.length;
+ $("pFl").innerHTML=`<tr><th>Losa</th><th>CM</th><th>CV</th><th>h tramo m</th><th>Col. mm</th></tr>`+PFL.map((p,i)=>`<tr><td><input data-f="${i}" data-k="n" value="${esc(p.n)}"></td>`+
+  ["cm","cv","h"].map(k=>`<td><input data-f="${i}" data-k="${k}" type="number" step="any" value="${p[k]}"></td>`).join("")+`<td><input data-f="${i}" data-k="b" type="number" step="50" placeholder="${i==n-1?"diseñar":"diseñar"}" value="${p.b}"></td></tr>`).join("");
+ $("pFl").querySelectorAll("input").forEach(e=>e.oninput=()=>{PFL[+e.dataset.f][e.dataset.k]=e.value;if(e.dataset.k=="n")pSel(true)})}
+function pSel(keep){const a=+$("pFs").value||0,b=$("pPs").value,o=PFL.map((p,i)=>`<option value="${i}">${esc(p.n)}</option>`).join("");
+ $("pFs").innerHTML=o;$("pPs").innerHTML=o;$("pFs").value=keep&&a<PFL.length?a:0;$("pPs").value=keep&&b!==""&&+b<PFL.length?b:PFL.length-1;pGrid()}
+function pGrid(){const G=pGeo(),p=PFL[+$("pFs").value];$("pDv").innerHTML=isFinite(G.Dx)?`DATO = ${f(G.Dx,6)}${G.DATO!==G.Dx?` → <b style="color:#fff">${G.DATO}</b>`:""}`:"";
+ $("pLv").innerHTML=G.err.length?`<span class="badc">${G.err.join(" · ")}</span>`:`X: ${G.X.map((x,i)=>`X${i+1} = ${f(x,2)}`).join(" · ")} m<br>Y: ${G.Y.map((x,i)=>`Y${i+1} = ${f(x,2)}`).join(" · ")} m`;
+ if(G.err.length||!p){$("pGrid").innerHTML='<p class="note">Completa el DATO y las luces para editar los paños.</p>';return}
+ const cx=pCel(G.X,G.vx0,G.vx1,"X"),cy=pCel(G.Y,G.vy0,G.vy1,"Y"),off=new Set(p.off||[]);
+ let h=`<div class="pgr" style="grid-template-columns:${cx.map(x=>Math.max(x.L,1.2).toFixed(2)+"fr").join(" ")}">`;
+ [...cy].reverse().forEach(y=>cx.forEach(x=>{const k=x.i+","+y.i;h+=`<button type="button" class="pce${off.has(k)?"":" on"}${x.vol||y.vol?" vol":""}" data-k="${k}">${x.lab}·${y.lab}</button>`}));
+ $("pGrid").innerHTML=h+"</div>";
+ $("pGrid").querySelectorAll(".pce").forEach(b=>b.onclick=()=>{const s=new Set(p.off||[]),k=b.dataset.k;if(s.has(k))s.delete(k);else s.add(k);p.off=[...s];b.classList.toggle("on")})}
+function pCalc(){const G=pGeo();pGrid();if(G.err.length||!PFL.length){PR=null;["pPlan","pRes","pSteps","pSec"].forEach(id=>$(id).innerHTML=G.err.length?`<p class="badc">${G.err.join(" · ")}</p>`:"");return}
+ const nX=G.X.length,nY=G.Y.length,xs=[0],ys=[0];G.X.forEach(a=>xs.push(xs[xs.length-1]+a));G.Y.forEach(a=>ys.push(ys[ys.length-1]+a));
+ const t=pn("pt"),gam=pn("pgam"),vh=pn("pvh"),wv=pn("pvb")*(vh-t)*gam,vg=$("pVg").checked,ls=$("pLs").checked,fc=pn("pfc"),modo=$("parm").value;
+ const lx=i=>i<0?G.vx0:i>=nX?G.vx1:G.X[i],ly=j=>j<0?G.vy0:j>=nY?G.vy1:G.Y[j],vx=i=>i<0||i>=nX,vy=j=>j<0||j>=nY;
+ const FL=PFL.map((p,i)=>{const off=new Set(p.off||[]),cm=pnum(p.cm),cv=pnum(p.cv),cmt=cm+(ls?t*gam:0);
+  return{n:p.n,i,cm,cv,cmt,qu:1.2*cmt+1.6*cv,h:pnum(p.h),b:pnum(p.b),on:(a,b)=>lx(a)>0&&ly(b)>0&&!off.has(a+","+b)}});
+ const COLP=[];
+ for(let a=0;a<=nX;a++)for(let b=0;b<=nY;b++){
+  const ej=(a==0||a==nX)+(b==0||b==nY),tipo=ej==2?"Esquina":ej==1?"Borde":"Interior",k=pn(ej==2?"pke":ej==1?"pkb":"pki"),id=String.fromCharCode(65+a)+(b+1);
+  // cuadrantes alrededor del nudo: mitad de luz, o el voladizo completo
+  const qd=[];for(const cy of[b-1,b])for(const cx of[a-1,a]){const wx=vx(cx)?lx(cx):lx(cx)/2,wy=vy(cy)?ly(cy):ly(cy)/2;if(wx>0&&wy>0)qd.push({cx,cy,wx,wy})}
+  // vigas sobre los ejes que llegan al nudo (existen si tocan un paño con losa)
+  const bm=[];for(const cx of[a-1,a]){const L=vx(cx)?lx(cx):lx(cx)/2;if(L>0)bm.push({L,adj:[[cx,b-1],[cx,b]]})}
+  for(const cy of[b-1,b]){const L=vy(cy)?ly(cy):ly(cy)/2;if(L>0)bm.push({L,adj:[[a-1,cy],[a,cy]]})}
+  let act=false,Pu=0,PPa=0,secA=0;const tr=[];
+  FL.forEach((F,fi)=>{const q=qd.filter(r=>F.on(r.cx,r.cy));if(!act&&!q.length)return;act=true;
+   const At=q.reduce((s,r)=>s+r.wx*r.wy,0),bs=vg?bm.filter(m=>m.adj.some(([i,j])=>F.on(i,j))):[],Lv=bs.reduce((s,m)=>s+m.L,0),Pl=F.qu*At+1.2*wv*Lv,pb=fi==FL.length-1;
+   const o={F,q,At,bs,Lv,Pl,Pprev:Pu,PPant:PPa,pb,nom:pb?"Planta baja":FL[fi+1].n,prim:!tr.length};Pu=Pu+1.2*PPa+Pl;o.Pu=Pu;
+   if(F.b>0)o.sec=F.b;else{o.dis=1;o.k=k;o.Ag=Pu*1000/(k*fc);o.hc=Math.sqrt(o.Ag);o.h50=Math.max(pn("psm"),Math.ceil(o.hc/50-1e-9)*50);o.sec=$("pNm").checked&&secA>o.h50?secA:o.h50}
+   o.PP=(o.sec/1000)**2*F.h*gam;if(pb)o.Des=Pu+1.2*o.PP;
+   if(o.dis){const P={h:o.sec,b:o.sec,rec:pn("prec"),dest:pn("pest"),fc,fy:pn("pfy"),Pu,Mx:0,My:0,Vu:0,hn:(F.h-vh)*1000,tol:10,rmax:3,modo:1,knx:0,kny:0,c150:modo!="12",emin:1,red:1,paso:50};
+    o.As0=pn("prho")/100*o.sec*o.sec;o.a=armar(P,o.As0,modo,{mix:true,tri:false});if(o.a){Object.assign(P,o.a);o.P=P;o.r=disenar(P)}}
+   PPa=o.PP;secA=o.sec;tr.push(o)});
+  if(tr.length)COLP.push({id,a,b,tipo,k,qd,tr,u:tr[tr.length-1],ex:String.fromCharCode(65+a),ey:b+1})}
+ PR={G,FL,COLP,xs,ys,nX,nY,wv,t,gam,vg,ls,fc,lx,ly};LSs("hd_pisos",JSON.stringify(pLeer()));pPintar()}
+function pPlanSvg(fi){const{G,FL,COLP,xs,ys,nX,nY,lx,ly}=PR,F=FL[fi],x0=-G.vx0,x1=xs[nX]+G.vx1,y0=-G.vy0,y1=ys[nY]+G.vy1,W=(x1-x0)*100,H=(y1-y0)*100,m=Math.max(W,H)*.14,fs=Math.max(W,H)/34;
+ const X=x=>(x-x0)*100,Y=y=>(y1-y)*100;
+ let o=`<svg viewBox="${-m} ${-m} ${W+2*m} ${H+2*m}" xmlns="http://www.w3.org/2000/svg" font-family="JetBrains Mono,monospace">`,lab="";
+ for(let i=-1;i<=nX;i++)for(let j=-1;j<=nY;j++)if(F.on(i,j)){const xa=i<0?-G.vx0:xs[Math.min(i,nX)],ya=j<0?-G.vy0:ys[Math.min(j,nY)];o+=`<rect x="${X(xa)}" y="${Y(ya+ly(j))}" width="${lx(i)*100}" height="${ly(j)*100}" fill="rgba(186,214,247,.06)" stroke="#9da7ba" stroke-width="${fs*.08}"/>`}
+ COLP.forEach((c,n)=>{const col=PCOL[n%PCOL.length];let best=null,At=0;
+  c.qd.forEach(r=>{if(!F.on(r.cx,r.cy))return;const xa=r.cx<c.a?xs[c.a]-r.wx:xs[c.a],ya=r.cy<c.b?ys[c.b]-r.wy:ys[c.b];At+=r.wx*r.wy;
+   o+=`<rect x="${X(xa)}" y="${Y(ya+r.wy)}" width="${r.wx*100}" height="${r.wy*100}" fill="${col}" fill-opacity=".4" stroke="${col}" stroke-width="${fs*.05}"/>`;if(!best||r.wx*r.wy>best.s)best={s:r.wx*r.wy,x:xa+r.wx/2,y:ya+r.wy/2}});
+  if(best)lab+=`<text x="${X(best.x)}" y="${Y(best.y)}" fill="#d8ecf8" font-size="${fs*1.1}" font-weight="600" text-anchor="middle">${c.id}</text><text x="${X(best.x)}" y="${Y(best.y)+fs*1.2}" fill="#d8ecf8" font-size="${fs*.8}" text-anchor="middle">${f(At,2)} m²</text>`});
+ xs.forEach((x,i)=>o+=`<line x1="${X(x)}" y1="${-m*.35}" x2="${X(x)}" y2="${H+m*.2}" stroke="#9da7ba" stroke-width="${fs*.06}" stroke-dasharray="${fs*.6} ${fs*.3}"/><text x="${X(x)}" y="${-m*.45}" fill="#d8ecf8" font-size="${fs*1.1}" text-anchor="middle">${String.fromCharCode(65+i)}</text>`);
+ ys.forEach((y,j)=>o+=`<line x1="${-m*.35}" y1="${Y(y)}" x2="${W+m*.2}" y2="${Y(y)}" stroke="#9da7ba" stroke-width="${fs*.06}" stroke-dasharray="${fs*.6} ${fs*.3}"/><text x="${-m*.55}" y="${Y(y)+fs*.4}" fill="#d8ecf8" font-size="${fs*1.1}" text-anchor="middle">${j+1}</text>`);
+ COLP.forEach(c=>{if(c.qd.some(r=>F.on(r.cx,r.cy)))o+=`<rect x="${X(xs[c.a])-fs*.4}" y="${Y(ys[c.b])-fs*.4}" width="${fs*.8}" height="${fs*.8}" fill="#e46d4c"/>`});
+ const dx=(a,b,tx)=>`<text x="${(X(a)+X(b))/2}" y="${H+m*.6}" fill="#b6d9fc" font-size="${fs*.8}" text-anchor="middle">${tx}</text>`,dy=(a,b,tx)=>{const xx=W+m*.55,yy=(Y(a)+Y(b))/2;return`<text x="${xx}" y="${yy}" fill="#b6d9fc" font-size="${fs*.8}" text-anchor="middle" transform="rotate(90 ${xx} ${yy})">${tx}</text>`};
+ G.X.forEach((x,i)=>o+=dx(xs[i],xs[i+1],`X${i+1}=${f(x,2)}`));if(G.vx0)o+=dx(-G.vx0,0,f(G.vx0,2));if(G.vx1)o+=dx(xs[nX],x1,f(G.vx1,2));
+ G.Y.forEach((y,j)=>o+=dy(ys[j],ys[j+1],`Y${j+1}=${f(y,2)}`));if(G.vy0)o+=dy(-G.vy0,0,f(G.vy0,2));if(G.vy1)o+=dy(ys[nY],y1,f(G.vy1,2));
+ return o+lab+`<text x="${W/2}" y="${H+m*.92}" fill="#9da7ba" font-size="${fs*.7}" text-anchor="middle">${esc(F.n)} · áreas tributarias en m² · cotas en m</text></svg>`}
+function pPintar(){const{G,FL,COLP,wv,t,gam,vg,ls,fc}=PR,ord=[...COLP].sort((p,q)=>p.a-q.a||p.b-q.b);$("pPlan").innerHTML=pPlanSvg(+$("pPs").value||0);
+ $("pRes").innerHTML=`<table class="ct"><thead><tr><th>Columna</th><th>Sección PB mm×mm</th><th>Descarga kN</th><th>Pu PB kN</th><th>Varillas</th><th>Estribos</th></tr></thead><tbody>`+
+  ord.map(c=>{const u=c.u;return`<tr><td data-l="Columna"><b>${c.id}</b></td><td data-l="Sección (mm×mm)" class="hl">${SEC(u.sec)}</td><td data-l="Descarga (kN)" class="hl">${f(u.Des,2)}</td><td data-l="Pu PB (kN)">${f(u.Pu,2)}</td><td data-l="Varillas" class="hl2">${u.P?armTxt(u.P):"—"}</td><td data-l="Estribos">${u.P?`Ø${u.P.dest} @${f(u.a.T.sLo,0)} / @${f(u.a.T.sOut,0)}`:"—"}</td></tr>`}).join("")+`</tbody></table>`;
+ // ---- procedimiento ----
+ const sus=ex=>pEx(ex).replace(/[A-Za-z_]\w*/g,x=>FN.includes(x)?x:isFinite(G.vals[x])?String(G.vals[x]):x).replace(/\*\*/g,"^").replace(/\*/g,"·"),fm=ex=>ex.replace(/\*\*/g,"^").replace(/\*/g,"·");
+ let pr=`<div class="ps"><div class="pn">Paso 1</div><h4>DATO y luces</h4>`;
+ if(G.df&&isFinite(G.Dx))pr+=fVars(G.df).length?EQ("DATO",fm(G.df),sus(G.df),f(G.Dx,6)+(G.DATO!==G.Dx?` → ${G.DATO}`:"")):EQ("DATO",String(G.DATO));
+ for(const ax of["X","Y"])G[ax].forEach((x,i)=>{const e=G[ax+"t"][i].ex;pr+=/^[\d.,\s]+$/.test(e)?EQ(`<i>${ax}</i><sub>${i+1}</sub>`,`${f(x,2)} m`):EQ(`<i>${ax}</i><sub>${i+1}</sub>`,fm(e),sus(e),f(G[ax+"t"][i].raw,4),`${f(x,2)} m`)});
+ pr+=`<p class="pt">Voladizos: X inicio ${f(G.vx0,2)} m · X final ${f(G.vx1,2)} m · Y inicio ${f(G.vy0,2)} m · Y final ${f(G.vy1,2)} m.${$("pR2").checked?" Luces redondeadas a 2 decimales.":""}</p></div>`;
+ pr+=`<div class="ps"><div class="pn">Paso 2</div><h4>Carga última de cada losa</h4>`+(ls?EQ("PP<sub>losa</sub>","t·γ<sub>c</sub>",`${f(t,2)}·${f(gam,0)}`,`${f(t*gam,2)} kN/m²`):"")+(vg?EQ("w<sub>viga</sub>","b·(h − t)·γ<sub>c</sub>",`${f(pn("pvb"),2)}·(${f(pn("pvh"),2)} − ${f(t,2)})·${f(gam,0)}`,`${f(wv,2)} kN/m`):"")+
+  `<div class="tw"><table><tr><th>Losa</th><th>CM</th>${ls?"<th>CM + losa</th>":""}<th>CV</th><th>q<sub>u</sub> = 1.2·CM + 1.6·CV</th></tr>${FL.map(F=>`<tr><td>${esc(F.n)}</td><td>${f(F.cm,2)}</td>${ls?`<td>${f(F.cmt,2)}</td>`:""}<td>${f(F.cv,2)}</td><td><b>${f(F.qu,2)}</b> kN/m²</td></tr>`).join("")}</table></div></div>`;
+ pr+=`<div class="ps"><div class="pn">Paso 3</div><h4>Tramos de columna</h4><div class="tw"><table><tr><th>Tramo</th><th>Bajo la losa</th><th>L m</th><th>Sección mm</th><th>PP = b·h·L·γ kN</th></tr>${FL.map((F,i)=>`<tr><td>${i==FL.length-1?"Planta baja":esc(FL[i+1].n)}</td><td>${esc(F.n)}</td><td>${f(F.h,2)}</td><td>${F.b?SEC(F.b):"por definir"}</td><td>${F.b?f((F.b/1000)**2*F.h*gam,2):"—"}</td></tr>`).join("")}</table></div>
+  <p class="pt">Un tramo solo existe en las columnas que tocan algún paño de su losa (por ejemplo, la sobrecubierta parcial solo la cargan sus columnas).</p></div>`;
+ pr+=`<div class="ps"><div class="pn">Paso 4</div><h4>Fórmulas de cada tramo (de arriba hacia abajo)</h4>${EQ("P<sub>losa</sub>",`${QU}·${AT}`+(vg?" + 1.2·w<sub>viga</sub>·L<sub>viga</sub>":""))}${EQ(PU,"P<sub>u,arriba</sub> + 1.2·PP<sub>arriba</sub> + P<sub>losa</sub>")}${EQ(AG,FR(`${PU}·10³`,`k·${FC}`))}${EQ("b = h",RAD(AG))}${EQ("PP","b·h·L·γ<sub>c</sub>")}${EQ("Descarga",`P<sub>u,PB</sub> + 1.2·PP<sub>PB</sub>`)}
+  <p class="pt">A<sub>t</sub>: mitad de cada luz que llega a la columna; un voladizo se suma completo. L<sub>viga</sub>: mitad de cada vano de viga sobre los ejes que llega a la columna, más el voladizo completo. La sección se redondea al múltiplo de 50 mm superior (mínimo ${f(pn("psm"),0)} mm)${$("pNm").checked?" y no se adopta menor que la columna de arriba":""}. k: esquina ${f(pn("pke"),2)} · borde ${f(pn("pkb"),2)} · interior ${f(pn("pki"),2)} · ${FC} = ${f(fc,0)} MPa.</p></div>`;
+ pr+=`<div class="ps"><div class="pn">Paso 5</div><h4>Columna por columna</h4><p class="pt">Toca cada columna para ver o esconder su cálculo.</p>`;
+ ord.forEach((c,ci)=>{let b=`<details class="pc"${ci==0?" open":""}><summary><b>${c.id}</b><span class="st">Eje ${c.ex}–${c.ey} · ${c.tipo}</span><span class="pill">PB ${SEC(c.u.sec)}</span></summary><div class="pcin">`;
+  c.tr.forEach(o=>{const F=o.F;
+   b+=`<div class="fl"><div class="flh"><span class="fn">Tramo ${esc(o.nom)}</span><span class="fs">recibe la losa ${esc(F.n)}</span><span class="fa">${SEC(o.sec)} mm${o.dis?"":" (dato)"}</span></div>
+   <div class="ft">Área tributaria${vg?" y vigas":""}</div>${o.q.length?EQ(AT,o.q.map(r=>`${f(r.wx,3)}·${f(r.wy,3)}`).join(" + "),`${f(o.At,3)} m²`):`<p class="ad">No recibe losa en este nivel.</p>`}
+   ${vg&&o.bs.length?EQ("L<sub>viga</sub>",o.bs.map(m=>f(m.L,3)).join(" + "),`${f(o.Lv,3)} m`):""}
+   <div class="ft">Carga axial</div>${EQ("P<sub>losa</sub>",`${f(F.qu,2)}·${f(o.At,3)}`+(vg?` + 1.2·${f(wv,2)}·${f(o.Lv,3)}`:""),`${f(o.Pl,2)} kN`)}
+   ${EQ(PU,o.prim?f(o.Pl,2):`${f(o.Pprev,2)} + 1.2·${f(o.PPant,2)} + ${f(o.Pl,2)}`,`${f(o.Pu,2)} kN`)}`;
+   if(o.dis)b+=`<div class="ft">Sección</div>${EQ(AG,FR(`${PU}·10³`,`k·${FC}`),FR(`${f(o.Pu,2)}·10³`,`${f(o.k,2)}·${f(fc,0)}`),`${f(o.Ag,2)} mm²`)}${EQ("b = h",RAD(AG),RAD(f(o.Ag,2)),`${f(o.hc,1)} mm`)}
+    <p class="ad">Se adopta <b>${SEC(o.sec)} mm</b>${o.sec>o.h50?` (no menor que la columna de arriba; el cálculo da ${o.h50} mm)`:o.hc<pn("psm")?` (mínimo ${f(pn("psm"),0)} mm)`:" (múltiplo de 50 mm)"}</p>`;
+   b+=`<div class="ft">Peso propio del tramo</div>${EQ("PP","b·h·L·γ<sub>c</sub>",`${f(o.sec/1000,2)}·${f(o.sec/1000,2)}·${f(F.h,2)}·${f(gam,0)}`,`${f(o.PP,2)} kN`)}`;
+   if(o.pb)b+=`<div class="ft">Descarga a la cimentación</div>${EQ("Descarga",`${f(o.Pu,2)} + 1.2·${f(o.PP,2)}`,`${f(o.Des,2)} kN`)}`;
+   if(o.dis){if(o.a){const P=o.P,a=o.a,trm=[[P.n1,P.d1],[P.n2,P.d2],[P.n3||0,P.d3]].filter(x=>x[0]>0);
+     b+=`<div class="ft">Acero longitudinal</div>${EQ("<i>A</i><sub>s,req</sub>","ρ·b·h",`${f(pn("prho")/100,3)}·${f(o.sec,0)}·${f(o.sec,0)}`,`${f(o.As0,1)} mm²`)}
+     ${EQ("<i>A</i><sub>s</sub>",trm.map(x=>`${x[0]}·${FR(`π·${x[1]}²`,"4")}`).join(" + "),trm.map(x=>`${x[0]}·${f(A(x[1]),2)}`).join(" + "),`${f(a.As,1)} mm²`)}
+     <p class="ad">Se adoptan <b>${armTxt(P)}</b> = ${f(a.As,1)} mm² ≥ ${f(o.As0,1)} mm² (ρ real = ${f(a.As/(o.sec*o.sec)*100,2)} %)</p>${a.c150x?`<p class="ad wc">Separación c/c = ${f(a.L.ccmax,0)} mm > 150 mm: revisar con ganchos suplementarios.</p>`:""}
+     <p class="ad">Estribos <b>${estTxt(P,a.T)}</b> mm</p><p class="ad ${o.r.okRes?"okc":"badc"}">φP<sub>n</sub> = ${f(o.r.phiPn,2)} kN ${o.r.okRes?"≥":"<"} P<sub>u</sub> = ${f(o.Pu,2)} kN → ${o.r.okRes?"cumple":"no cumple"}</p>`}
+    else b+=`<p class="ad badc">No se encontró un armado posible para esta sección.</p>`}
+   b+=`</div>`});
+  pr+=b+`</div></details>`});
+ $("pSteps").innerHTML=pr+`</div>`;
+ $("pSec").innerHTML=ord.map(c=>c.u.P?`<figure class="scard"><figcaption><span class="sp">${c.id}</span><span class="se">PB</span></figcaption><div class="svgw">${secFig(c.u.P,c.u.r)}</div><div class="sd"><b>${SEC(c.u.sec)} mm</b><span>${armTxt(c.u.P)}</span><span>Estribos ${estTxt(c.u.P,c.u.a.T)}</span><span>Descarga = ${f(c.u.Des,2)} kN</span></div></figure>`:"").join("")||'<p class="note">La planta baja tiene secciones dadas; no se predimensiona.</p>'}
+$("pGo").onclick=pCalc;$("pPs").onchange=()=>{if(PR)$("pPlan").innerHTML=pPlanSvg(+$("pPs").value)};$("pFs").onchange=pGrid;
+for(const id of["pDf","pX","pY","pvx0","pvx1","pvy0","pvy1","yC","yA","yM","yD"])$(id).addEventListener("change",pGrid);for(const id of["pDr","pR2"])$(id).addEventListener("change",pGrid);
+$("pEj").onclick=()=>{pPoner(PEJ);pCalc()};
+$("pFa").onclick=()=>{const p=PFL[0]||{cm:0,cv:0,h:3,b:"",off:[]};PFL.unshift({n:"Nuevo piso",cm:p.cm,cv:p.cv,h:p.h,b:p.b,off:[...(p.off||[])]});pTabla();pSel()};
+$("pFr").onclick=()=>{if(PFL.length>1){PFL.shift();pTabla();pSel()}};
+$("pAll").onclick=()=>{const p=PFL[+$("pFs").value];if(p){p.off=[];pGrid()}};
+$("pCp").onclick=()=>{const i=+$("pFs").value,p=PFL[i];if(p)PFL.slice(i+1).forEach(q=>q.off=[...(p.off||[])]);pGrid()};
+function pIni(){let c=null;try{c=JSON.parse(LSg("hd_pisos")||"null")}catch(e){}pPoner(c&&c.fl&&c.fl.length?c:PEJ);if(!pGeo().err.length)pCalc()}
+
 // ---------- estado inicial ----------
 document.querySelectorAll("i.u").forEach(e=>e.textContent="("+UK(e.dataset.d)[0]+")");
 // app instalable: guarda la página y el generador de PDF para usarlos sin internet (solo cuando se sirve por https)
 if("serviceWorker"in navigator&&location.protocol=="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
-set("frec",40);set("fhn",3000);datosIni();if(!DT.carga.aplicar(0)){luces("X",[7.5,6,3]);luces("Y",[6,7]);set("ccm",12.5);set("ccv",7.5);calcC()}$("fPre").value="t2c";$("fPre").onchange();
+set("frec",40);set("fhn",3000);datosIni();if(!DT.carga.aplicar(0)){luces("X",[7.5,6,3]);luces("Y",[6,7]);set("ccm",12.5);set("ccv",7.5);calcC()}$("fPre").value="t2c";$("fPre").onchange();pIni();
 </script>
 
 </body></html>
