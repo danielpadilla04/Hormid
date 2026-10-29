@@ -133,7 +133,7 @@ textarea{background:var(--panel2);color:#fff;border:0;box-shadow:inset 0 0 0 1px
 .rep pre.steps{max-height:none;overflow:visible;font-size:11px;color:#1b1f2a}.rep .tw{overflow:visible}
 .rep .eq{color:#111;font-size:13px}.rep .eq .rs{color:#111;background:rgba(91,47,214,.1)}.rep .fn,.rep .ad b,.rep .sd b,.rep .sp,.rep .kpi div,.rep table.ct td.hl,.rep table.mx td,.rep .vb b,.rep .cgh b,.rep .pc>summary b,.rep .pch b{color:#0b1020}
 .rep .pc{background:#f5f6fa}.rep summary::after{content:none!important}.rep .ps,.rep .pcard,.rep .scard,.rep .kpi,.rep .colc{background:#f7f8fb}
-.rep table.rdat{width:auto;font-size:11.5px}.rep table.rdat td{text-align:left;padding:3px 10px 3px 0}.rep .rin{background:#fff;color:#111;width:56px}
+.rep table.rdat{width:auto;font-size:11.5px}.rep table.rdat td{text-align:left;padding:3px 10px 3px 0;white-space:normal}.rep .rin{background:#fff;color:#111;width:56px}
 .rep table.ct thead{display:table-header-group}.rep table.ct td{font-size:10.5px;padding:4px 5px;white-space:normal}.rep table.ct th{font-size:9.5px;padding:4px 5px}
 @media(max-width:600px){#cTab td:nth-child(2),#cTab th:nth-child(2),#cTab td:nth-child(3),#cTab th:nth-child(3),#cTab td:nth-child(6),#cTab th:nth-child(6){display:none}#cTab td,#cTab th{padding:6px 4px;font-size:11.5px;white-space:normal}#cTab th{font-size:10px;letter-spacing:.03em}.rin{width:50px;padding:4px}}
 </style>
@@ -149,20 +149,16 @@ textarea{background:var(--panel2);color:#fff;border:0;box-shadow:inset 0 0 0 1px
 <label>Fuerza<select id="uF"></select></label><label>Longitud<select id="uL"></select></label><label>Esfuerzo<select id="uS"></select></label><label>Momento<select id="uM"></select></label></div>
 <div class="units"><label style="min-width:190px">Reporte PDF paso a paso<select id="pMod"><option value="act">Módulo actual</option><option value="carga">1 · Cargas y predimensionamiento</option><option value="flexo">2 · Flexocompresión biaxial</option><option value="esb">3 · Columnas esbeltas</option><option value="all">Los 3 módulos</option></select></label>
 <label style="min-width:190px">Estudiante / curso<input id="pAut" placeholder="Nombre · Hormigón II"></label><button class="btn" id="pdfGo">⬇ Generar PDF</button><span class="note" id="pMsg" style="align-self:center"></span></div>
+<div class="units"><label>Año de nacimiento (A)<input id="yA" type="number" placeholder="2004"></label><label>Mes (M)<input id="yM" type="number" min="1" max="12" placeholder="5"></label><label>Día (D)<input id="yD" type="number" min="1" max="31" placeholder="15"></label>
+<label style="min-width:170px">Cédula (CED)<input id="yC" inputmode="numeric" placeholder="opcional"></label>
+<p class="note" style="flex-basis:100%;text-align:center;margin:0">Variables para las fórmulas DATO: A, M, D, CED, U1/U2/U3 (último, 2 o 3 últimos dígitos de la cédula), SC (suma de dígitos de la cédula). Se guardan solo en este dispositivo.</p></div>
 <main>
 
 <!-- ============ MÓDULO 1 ============ -->
 <section id="m-carga" class="mod">
 <div class="card">
 <h2>Datos del edificio</h2>
-<details open><summary><h3 style="margin:0">DATO del ejercicio (fórmula y tabla editables)</h3></summary>
-<label style="margin-top:8px">Fórmula de DATO (usa + − * / ^ y sqrt, pow, min, max…)<input id="cdF" value="6*A*(M+15.48)/(1000*D)" autocomplete="off"></label>
-<div class="g g3" id="cdV" style="margin-top:8px"></div>
-<div class="g" style="margin-top:8px"><label>N.º luces X en la tabla<input id="cdnx" type="number" value="3" min="1"></label><label>N.º luces Y en la tabla<input id="cdny" type="number" value="2" min="1"></label></div>
-<label style="margin-top:8px">Tabla: una fila por línea → rango DATO, luces X, luces Y, CM, CV<textarea id="cdT" rows="9" spellcheck="false"></textarea></label>
-<p class="note" style="margin:4px 0 0">Rangos válidos: «≤ 9.0», «9.1 a 10.6», «≥ 74.0». Se puede copiar la tabla del enunciado y corregir los números.</p>
-<div class="row" style="margin-top:8px"><button class="btn sec" id="cDat">Calcular DATO y cargar fila</button></div><p class="note" id="cDr" style="margin:6px 0 0"></p></details>
-<label style="margin-top:8px">Datos<select id="cPre"></select></label>
+<div id="dato-carga"></div>
 <h3>Luces en X</h3><div class="g g3" id="cXs"></div><div class="row" style="margin-top:8px"><button class="btn sec" id="cXa">+ Agregar X</button><button class="btn sec" id="cXr">− Quitar</button></div>
 <label style="margin-top:8px"><span><input id="cXv" type="checkbox" checked style="width:auto"> La última X es voladizo</span></label>
 <h3>Luces en Y</h3><div class="g g3" id="cYs"></div><div class="row" style="margin-top:8px"><button class="btn sec" id="cYa">+ Agregar Y</button><button class="btn sec" id="cYr">− Quitar</button></div>
@@ -195,6 +191,7 @@ textarea{background:var(--panel2);color:#fff;border:0;box-shadow:inset 0 0 0 1px
 <section id="m-flexo" class="mod" hidden>
 <div class="card">
 <h2>Columna rectangular</h2>
+<div id="dato-flexo"></div>
 <label>Ejemplo<select id="fPre"></select></label>
 <h3>Cargas mayoradas</h3>
 <div class="g g3"><label>Pu kN<input id="fPu" type="number" step="0.01"></label><label>Vu kN<input id="fVu" type="number" step="0.01"></label><label>hn libre mm<input id="fhn" type="number"></label></div>
@@ -235,6 +232,7 @@ textarea{background:var(--panel2);color:#fff;border:0;box-shadow:inset 0 0 0 1px
 <section id="m-esb" class="mod" hidden>
 <div class="card">
 <h2>Esbeltez · magnificación de momentos</h2>
+<div id="dato-esb"></div>
 <label>Ejemplo<select id="ePre"><option value="">—</option><option value="a">PDF: C3 pórtico arriostrado (18×18 in)</option><option value="n">PDF: C3 pórtico no arriostrado</option></select></label>
 <div class="g" style="margin-top:8px"><label>Pórtico<select id="eTipo"><option value="a">Arriostrado (sin desplazamiento)</option><option value="n">No arriostrado</option></select></label><label>Dirección del momento<select id="eDir"><option value="x">X (h, Mux)</option><option value="y">Y (b, Muy)</option></select></label></div>
 <h3>Sección y longitud</h3>
@@ -556,45 +554,80 @@ function svgElev(P,T){const hn=P.hn,Hh=560,s=Hh/hn,w=Math.min(110,Math.max(50,P.
  o+=`<path d="M40 ${y0}V${y0+Hh}M36 ${y0}h8M36 ${y0+Hh}h8" stroke="${c}"/><text x="30" y="${y0+Hh/2}" fill="#d8ecf8" text-anchor="middle" transform="rotate(-90 30 ${y0+Hh/2})">hn = ${U(hn,"L",0)}</text>`;
  o+=`<text x="${x0+w/2}" y="${y0+Hh+30}" fill="#9da7ba" text-anchor="middle">primer estribo a s/2 de la cara</text></svg>`;return{svg:o,nLo,nC,tot:2*nLo+nC}}
 // ---------- Módulo 1 ----------
-// ---- DATO: fórmula y tabla del enunciado (cambian en cada ejercicio; se guardan en este navegador) ----
-let RHO={},TAB=[];const LSg=k=>{try{return localStorage.getItem(k)}catch(e){return null}},LSs=(k,x)=>{try{localStorage.setItem(k,x)}catch(e){}};
-const DEF_T=`≤ 9.0  7.50 6.00 3.00  6.00 7.00  12.50 7.50
+// ---- DATO: fórmula, datos personales y tabla del enunciado. Cambian en cada ejercicio: todo es editable y se guarda en este navegador ----
+let RHO={};const LSg=k=>{try{return localStorage.getItem(k)}catch(e){return null}},LSs=(k,x)=>{try{localStorage.setItem(k,x)}catch(e){}};
+const FN=["sqrt","pow","abs","round","min","max","log","log10","exp","floor","ceil","trunc","PI"],PERK=["A","M","D","CED","U1","U2","U3","SC"];
+["yA","yM","yD","yC"].forEach(id=>{$(id).value=LSg("hd_"+id)||"";$(id).addEventListener("input",()=>LSs("hd_"+id,$(id).value))});
+function persVals(){const c=($("yC").value||"").replace(/\D/g,""),n=s=>s===""?NaN:+s;
+ return{A:n($("yA").value),M:n($("yM").value),D:n($("yD").value),CED:n(c),U1:n(c.slice(-1)),U2:n(c.slice(-2)),U3:n(c.slice(-3)),SC:c?[...c].reduce((t,x)=>t+ +x,0):NaN}}
+const fVars=ex=>[...new Set((ex.match(/[A-Za-z_]\w*/g)||[]).filter(x=>!FN.includes(x)))];
+function fEval(ex0,vals){const ex=ex0.replace(/\^/g,"**");if(/[^\w\s.+\-*/%(),]/.test(ex))throw Error("carácter no permitido");const vs=fVars(ex);
+ return Function(...FN,...vs,`"use strict";return(${ex})`)(...FN.map(k=>Math[k]),...vs.map(k=>vals[k]))}
+// 1.ª línea con letras = nombres de columna; cada fila = rango DATO + un valor por columna
+function parseTab(txt){let head=null;const rows=[];
+ txt.split(/\n/).forEach(l=>{const s=l.trim().replace(/(\d),(\d)/g,"$1.$2").replace(/(\d)-(\d)/g,"$1 a $2");if(!s)return;
+  if(!head&&/^[A-Za-zΨψβ]/.test(s)){head=s.split(/[\s;|]+/).filter(Boolean);if(/^dato$/i.test(head[0]))head=head.slice(1);return}
+  if(!head)return;const n=(s.match(/-?\d+(\.\d+)?/g)||[]).map(Number),k=n.length-head.length;if(k<1)return;const r=n.slice(0,k).map(Math.abs),d=n.slice(k);let lo=-Infinity,hi=Infinity;
+  if(k>=2){lo=r[0];hi=r[1]}else if(/≥|>|más|mayor/i.test(s)||(rows.length&&!/≤|<|menor/i.test(s)))lo=r[0];else hi=r[0];
+  const val={};head.forEach((h,i)=>val[h]=d[i]);rows.push({nom:k>=2?`DATO ${r[0]} a ${r[1]}`:lo>-Infinity?`DATO ≥ ${lo}`:`DATO ≤ ${hi}`,lo,hi,val})});
+ return{head:head||[],rows}}
+const pon=(id,x)=>{const e=$(id);e.value=x;delete e.dataset.si;delete e.dataset.disp};
+const llave=h=>h.replace(/['’]/g,"").toLowerCase();
+const DT={};
+function datoUI(m,cfg){const box=$("dato-"+m),k="hd_"+m+"_";
+ box.innerHTML=`<details class="dato" open><summary><h3 style="margin:0">DATO del ejercicio</h3></summary>
+ <label style="margin-top:8px">Fórmula de DATO (o escribe directamente el valor de DATO)<input data-k="f" autocomplete="off"></label>
+ <div class="g g3" data-k="v" style="margin-top:8px"></div>
+ <label style="margin-top:8px">Tabla del enunciado: 1.ª línea nombres de columna, luego una fila por línea<textarea data-k="t" rows="6" spellcheck="false" placeholder="${cfg.ph}"></textarea></label>
+ <p class="note" style="margin:4px 0 0">Columnas: ${cfg.cols}. Rangos: «≤ 9.0», «9.1 a 10.6», «≥ 74.0». Los valores se escriben en las unidades elegidas arriba.</p>
+ <div class="row" style="margin-top:8px"><button class="btn sec" data-k="go">Calcular DATO y cargar fila</button></div><p class="note" data-k="r" style="margin:6px 0 0"></p>
+ <label style="margin-top:6px">Fila que se usa (puedes escoger otra)<select data-k="s"></select></label></details>`;
+ const q=x=>box.querySelector(`[data-k=${x}]`),F=q("f"),T=q("t"),V=q("v"),S=q("s"),Rr=q("r"),o={tab:{rows:[]},txt:""};
+ F.value=LSg(k+"f")??cfg.f;T.value=LSg(k+"t")??cfg.t;
+ const inputs=()=>{let old={};try{old=JSON.parse(LSg(k+"v")||"{}")}catch(e){}V.querySelectorAll("input").forEach(i=>old[i.dataset.v]=i.value);
+  V.innerHTML=fVars(F.value).filter(x=>!PERK.includes(x)).map(x=>`<label>${x}<input type="number" step="any" data-v="${x}" value="${old[x]??""}"></label>`).join("")};
+ const tabla=()=>{o.tab=parseTab(T.value);const p=S.value;LSs(k+"t",T.value);
+  S.innerHTML='<option value="-1">— valores escritos a mano</option>'+o.tab.rows.map((r,i)=>`<option value="${i}">${r.nom} · ${Object.entries(r.val).map(([a,b])=>a+" "+b).join(" · ")}</option>`).join("");S.value=o.tab.rows[p]?p:-1};
+ o.aplicar=i=>{const r=o.tab.rows[i];if(!r)return false;S.value=i;const v2={};for(const h in r.val)v2[llave(h)]=r.val[h];cfg.aplicar(v2);return true};
+ F.oninput=()=>{inputs();LSs(k+"f",F.value)};T.onchange=tabla;S.onchange=()=>o.aplicar(+S.value);
+ q("go").onclick=()=>{tabla();const vals=persVals(),mine={};V.querySelectorAll("input").forEach(i=>{vals[i.dataset.v]=mine[i.dataset.v]=i.value===""?NaN:parseFloat(i.value)});LSs(k+"v",JSON.stringify(mine));
+  let d;try{d=fEval(F.value,vals)}catch(e){Rr.innerHTML=`<span class="badc">Fórmula no válida: ${e.message}</span>`;return}
+  if(!isFinite(d)){const fa=fVars(F.value).filter(x=>!isFinite(vals[x]));Rr.innerHTML=`<span class="badc">${fa.length?"Faltan valores: "+fa.join(", "):"División para cero"}</span>`;return}
+  // los rangos del enunciado van con 1 decimal: se redondea DATO a 1 decimal para no caer entre 9.0 y 9.1
+  const dr=Math.round(d*10)/10;let i=o.tab.rows.findIndex(t=>dr>=t.lo&&dr<=t.hi);if(i<0)i=o.tab.rows.findIndex(t=>dr<=t.hi);
+  const fm=F.value.replace(/\*\*/g,"^").replace(/\*/g,"·"),sus=F.value.replace(/[A-Za-z_]\w*/g,x=>FN.includes(x)?x:String(vals[x])).replace(/\*\*/g,"^").replace(/\*/g,"·");
+  o.txt=(fVars(F.value).length?`DATO = ${fm} = ${sus} = `:"DATO = ")+f(d,3)+(i>=0?` → fila ${o.tab.rows[i].nom}`:"");
+  Rr.innerHTML=`DATO = ${fVars(F.value).length?sus+" = ":""}<b>${f(d,3)}</b>`+(i>=0?` → fila «${o.tab.rows[i].nom}»`:o.tab.rows.length?` <span class="badc">→ ninguna fila cubre este valor</span>`:"");if(i>=0)o.aplicar(i)};
+ inputs();tabla();DT[m]=o;return o}
+const DEF_F="6*A*(M+15.48)/(1000*D)";
+const MAPF=(map,v2)=>{for(const h in v2)if(map[h])pon(map[h],v2[h])};
+function datosIni(){
+ datoUI("carga",{f:DEF_F,cols:"x1, x2… (luces X), y1, y2… (luces Y), CM, CV, fc, fy, n (losas), hp (altura PB), hs (altura pisos)",ph:"DATO x1 x2 x3 y1 y2 CM CV",
+  t:`DATO x1 x2 x3 y1 y2 CM CV
+≤ 9.0  7.50 6.00 3.00  6.00 7.00  12.50 7.50
 9.1 a 10.6  6.00 7.00 3.00  7.00 5.00  13.00 7.00
 10.7 a 13.6  8.00 6.00 2.50  5.50 6.00  13.50 6.50
 13.7 a 18.0  6.00 8.50 3.00  8.00 5.00  14.00 6.00
 18.1 a 25.0  6.50 7.00 2.50  7.50 5.00  13.50 5.50
 25.1 a 33.0  5.00 7.00 3.00  6.50 8.00  13.00 6.00
 33.1 a 73.9  7.50 8.00 3.00  7.00 6.00  12.50 6.50
-≥ 74.0  7.00 6.50 2.50  5.50 7.00  12.00 7.50`;
-const FN=["sqrt","pow","abs","round","min","max","log","log10","exp","floor","ceil","PI"];
-const fVars=()=>[...new Set(($("cdF").value.match(/[A-Za-z_]\w*/g)||[]).filter(x=>!FN.includes(x)))];
-function fEval(vals){const ex=$("cdF").value.replace(/\^/g,"**");if(/[^\w\s.+\-*/(),]/.test(ex))throw Error("carácter no permitido en la fórmula");const vs=fVars();
- return Function(...FN,...vs,`"use strict";return(${ex})`)(...FN.map(k=>Math[k]),...vs.map(k=>vals[k]))}
-function fInputs(){let old={};try{old=JSON.parse(LSg("hd_dv")||"{}")}catch(e){}$("cdV").querySelectorAll("input").forEach(i=>old[i.dataset.v]=i.value);
- $("cdV").innerHTML=fVars().map(k=>`<label>${k}<input type="number" step="any" data-v="${k}" value="${old[k]??""}"></label>`).join("")}
-function parseTab(){const nx=Math.max(1,+$("cdnx").value||1),ny=Math.max(1,+$("cdny").value||1),need=nx+ny+2,rows=[];
- $("cdT").value.split(/\n/).forEach(l=>{const s=l.replace(/(\d),(\d)/g,"$1.$2"),n=(s.match(/\d+(\.\d+)?/g)||[]).map(Number);if(n.length<need+1)return;const k=n.length-need,r=n.slice(0,k),d=n.slice(k);let lo=-Infinity,hi=Infinity;
-  if(k>=2){lo=r[0];hi=r[1]}else if(/≥|>|más|mayor/i.test(s)||(rows.length&&!/≤|<|menor/i.test(s)))lo=r[0];else hi=r[0];
-  rows.push({nom:k>=2?`DATO ${r[0]} a ${r[1]}`:lo>-Infinity?`DATO ≥ ${lo}`:`DATO ≤ ${hi}`,lo,hi,X:d.slice(0,nx),Y:d.slice(nx,nx+ny),cm:d[nx+ny],cv:d[nx+ny+1]})});
- return rows}
-function cargarTab(){TAB=parseTab();const p=$("cPre").value;$("cPre").innerHTML='<option value="-1">Mis datos (personalizado)</option>'+TAB.map((t,i)=>`<option value="${i}">Tabla · ${t.nom}</option>`).join("");$("cPre").value=TAB[p]?p:-1;
- LSs("hd_dt",$("cdT").value);LSs("hd_df",$("cdF").value);LSs("hd_dn",$("cdnx").value+","+$("cdny").value)}
-$("cdT").value=LSg("hd_dt")||DEF_T;$("cdF").value=LSg("hd_df")||$("cdF").value;{const n=(LSg("hd_dn")||"").split(",");if(n[1]){$("cdnx").value=n[0];$("cdny").value=n[1]}}
-fInputs();cargarTab();$("cdF").oninput=()=>{fInputs();LSs("hd_df",$("cdF").value)};for(const id of["cdT","cdnx","cdny"])$(id).onchange=cargarTab;
-$("cDat").onclick=()=>{cargarTab();const vals={};$("cdV").querySelectorAll("input").forEach(i=>vals[i.dataset.v]=parseFloat(i.value));LSs("hd_dv",JSON.stringify(Object.fromEntries(Object.entries(vals).map(([k,x])=>[k,isNaN(x)?"":x]))));
- let d;try{d=fEval(vals)}catch(e){$("cDr").innerHTML=`<span class="badc">Fórmula no válida: ${e.message}</span>`;return}
- if(!isFinite(d)){$("cDr").innerHTML=`<span class="badc">Faltan valores (${fVars().join(", ")}) o hay división para cero.</span>`;return}
- // los rangos del enunciado tienen 1 decimal: se redondea DATO a 1 decimal para no caer en los huecos (9.0 | 9.1)
- const dr=Math.round(d*10)/10,i=TAB.findIndex(t=>dr>=t.lo&&dr<=t.hi)>=0?TAB.findIndex(t=>dr>=t.lo&&dr<=t.hi):TAB.findIndex(t=>dr<=t.hi);
- const sus=$("cdF").value.replace(/[A-Za-z_]\w*/g,k=>FN.includes(k)?k:`${vals[k]}`).replace(/\*/g,"·");
- $("cDr").innerHTML=`DATO = ${sus} = <b>${f(d,3)}</b>`+(i>=0?` → fila «${TAB[i].nom}»`:` <span class="badc">→ ninguna fila de la tabla cubre este valor</span>`);if(i>=0){$("cPre").value=i;$("cPre").onchange()}};
+≥ 74.0  7.00 6.50 2.50  5.50 7.00  12.00 7.50`,
+  aplicar:v2=>{const ser=re=>Object.keys(v2).filter(h=>re.test(h)).sort((a,b)=>a.slice(1)-b.slice(1)).map(h=>v2[h]),X=ser(/^x\d+$/),Y=ser(/^y\d+$/);
+   if(X.length)luces("X",X);if(Y.length)luces("Y",Y);MAPF({cm:"ccm",cv:"ccv",fc:"cfc",fy:"cfy",n:"cn",hp:"chp",hs:"chs"},v2);RHO={};calcC()}});
+ datoUI("flexo",{f:DEF_F,cols:"Pu, Vu, Mux, Muy (momentos al pie), Mxc, Myc (cabeza), ex, ey, h, b, fc, fy, hn, rec",ph:"DATO Pu Mux Muy fc",
+  t:`DATO Pu Mux Muy fc
+≤ 12.0  3500 150 220 28`,
+  aplicar:v2=>{const exc="ex"in v2||"ey"in v2;$("fCarga").value=exc?2:1;$("fCarga").onchange();MAPF({pu:"fPu",vu:"fVu",mux:"fMx",muy:"fMy",mxc:"fMxc",myc:"fMyc",ex:"fex",ey:"fey",h:"fh",b:"fb",fc:"ffc",fy:"ffy",hn:"fhn",rec:"frec"},v2);
+   $("fPre").value="";hist=[];if(!("h"in v2))predim();calc()}});
+ datoUI("esb",{f:DEF_F,cols:"Pu, M1, M2 (arriostrado), M1ns, M2ns, M1s, M2s (no arriostrado), lu, h, b, fc, PsiA, PsiB, bd (βdns)",ph:"DATO Pu M1 M2 lu h b fc",
+  t:`DATO Pu M1 M2 lu h b fc
+`,aplicar:v2=>{MAPF({pu:"ePu",m1:"eM1",m2:"eM2",m1ns:"e1n",m2ns:"e2n",m1s:"e1s",m2s:"e2s",lu:"elu",h:"eh",b:"eb",fc:"efc",psia:"epa","ψa":"epa",psib:"epb","ψb":"epb",bd:"ebd","βdns":"ebd"},v2);$("ePre").value="";calcE()}})}
 let NX=0,NY=0;
 function luces(ax,vals){const box=$("c"+ax+"s");box.innerHTML="";for(const id in UMAP)if(id.startsWith("c"+ax+"_"))delete UMAP[id];
  vals.forEach((x,i)=>{const id=`c${ax}_${i+1}`,lb=document.createElement("label");lb.textContent=(ax=="X"?"x":"y")+(i+1);const inp=document.createElement("input");inp.type="number";inp.step="0.01";inp.id=id;lb.append(inp);box.append(lb);addU(id,"G");set(id,x)});
  if(ax=="X")NX=vals.length;else NY=vals.length}
 const leer=ax=>Array.from({length:ax=="X"?NX:NY},(_,i)=>v(`c${ax}_${i+1}`));
-for(const ax of["X","Y"]){$("c"+ax+"a").onclick=()=>{const L=leer(ax);luces(ax,[...L,L[L.length-1]||5]);$("cPre").value=-1};$("c"+ax+"r").onclick=()=>{const L=leer(ax);if(L.length>1)luces(ax,L.slice(0,-1));$("cPre").value=-1}}
-$("cPre").onchange=()=>{const t=TAB[$("cPre").value];if(!t)return;luces("X",t.X);luces("Y",t.Y);set("ccm",t.cm);set("ccv",t.cv);RHO={};calcC()};
+for(const ax of["X","Y"]){$("c"+ax+"a").onclick=()=>{const L=leer(ax);luces(ax,[...L,L[L.length-1]||5])};$("c"+ax+"r").onclick=()=>{const L=leer(ax);if(L.length>1)luces(ax,L.slice(0,-1))}}
 $("cGo").onclick=()=>calcC();let COLS=[],CG=null;for(const id of["carm","cmix","ctri","crho","cuni"])$(id).addEventListener("change",()=>{if(COLS.length)calcC()});
 function planSvg(G){const X={sp:G.X.sp.map(a=>a*100),vo:G.X.vo*100},Y={sp:G.Y.sp.map(a=>a*100),vo:G.Y.vo*100},LX=X.sp.reduce((a,b)=>a+b,0),LY=Y.sp.reduce((a,b)=>a+b,0),TX=LX+X.vo,TY=LY+Y.vo,m=Math.max(TX,TY)*.14,fs=Math.max(TX,TY)/30;
  const xs=[0],ys=[0];X.sp.forEach(a=>xs.push(xs[xs.length-1]+a));Y.sp.forEach(a=>ys.push(ys[ys.length-1]+a));const c="#9da7ba",sw=fs*.08;
@@ -633,7 +666,7 @@ function calcC(){const C={X:leer("X"),Y:leer("Y"),vx:$("cXv").checked,vy:$("cYv"
  $("cTab").innerHTML=`<table><tr><th>Col.</th><th>Tipo</th><th>Ancho x · y</th><th>At</th><th>Pu PB</th><th>Ag PB</th><th>Sección PB</th><th style="text-transform:none">ρ %</th></tr>`+
  COLS.map((c,i)=>`<tr class="cl" data-i="${i}"><td><b>${c.id}</b></td><td>${c.tipo}</td><td>${U(c.wx,"G",2,1)} · ${U(c.wy,"G")}</td><td>${U(c.At,"GA")}</td><td>${U(c.Pu,"F")}</td><td>${U(c.Ag,"A",0)}</td><td>${U(uni?hmax:c.h,"L",0)}</td><td><input class="rin" type="number" step="0.1" min="1" max="3" data-id="${c.id}" value="${+(c.rho*100).toFixed(2)}"></td></tr>`).join("")+"</table>";
  document.querySelectorAll("#cTab tr.cl").forEach(tr=>tr.onclick=e=>{if(e.target.tagName!="INPUT")aFlexo(+tr.dataset.i)});
- document.querySelectorAll("#cTab .rin").forEach(inp=>{inp.onclick=e=>e.stopPropagation();inp.onchange=()=>{const x=parseFloat(inp.value);if(x>0)RHO[inp.dataset.id]=x;else delete RHO[inp.dataset.id];$("cPre").value=$("cPre").value;calcC()}});
+ document.querySelectorAll("#cTab .rin").forEach(inp=>{inp.onclick=e=>e.stopPropagation();inp.onchange=()=>{const x=parseFloat(inp.value);if(x>0)RHO[inp.dataset.id]=x;else delete RHO[inp.dataset.id];calcC()}});
  // ---- Secciones por piso (gráficas) ----
  $("cPisos").innerHTML=COLS.map((c,i)=>`<div class="cgrp"><div class="cgh"><b>Columna ${c.id}</b><span>Eje ${c.ex} · Eje ${c.ey} · ${c.tipo} · At = ${f(c.At,3)} m²</span><button class="btn sec sm" data-i="${i}">Diseño biaxial PB →</button></div><div class="sgrid">`+
   c.pisos.map(p=>`<figure class="scard"><figcaption><span class="sp">${p.nom}</span><span class="se">Eje ${c.ex}–${c.ey}</span></figcaption>`+
@@ -739,12 +772,13 @@ const PAL=[["#0d1428","#ffffff"],["#0b1020","#ffffff"],["#d8ecf8","#111827"],["#
  ["\"#fff\"","\"#111827\""],["rgba(186,215,247,.08)","rgba(0,0,0,.12)"],["rgba(186,215,247,.1)","rgba(0,0,0,.1)"],["rgba(199,211,234,.35)","rgba(0,0,0,.35)"],["rgba(186,214,247,.06)","rgba(0,0,0,.03)"],["rgba(182,217,252,.10)","rgba(29,78,216,.1)"],["rgba(182,217,252,.18)","rgba(29,78,216,.15)"],["rgba(102,58,243,.12)","rgba(91,47,214,.12)"]];
 function svgPng(svg,ancho){return new Promise(ok=>{const vb=(svg.getAttribute("viewBox")||"0 0 300 150").split(/[ ,]+/).map(Number),W=ancho*2,H=Math.round(W*vb[3]/vb[2]),im=new Image(),cp=svg.cloneNode(true);
  cp.setAttribute("width",W);cp.setAttribute("height",H);cp.removeAttribute("class");let s=new XMLSerializer().serializeToString(cp);for(const[a,b]of PAL)s=s.split(a).join(b);s=s.replace(/JetBrains Mono,monospace/g,"Consolas,Menlo,monospace");
- im.onload=()=>{const c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,H);g.drawImage(im,0,0,W,H);const o=new Image();o.className="fig";o.src=c.toDataURL("image/png");
-  o.style.maxWidth=ancho+"px";ok(o)};im.onerror=()=>ok(null);im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(s)})}
+ const img=src=>{const o=new Image();o.className="fig";o.src=src;o.style.maxWidth=ancho+"px";return o};
+ // si el navegador no deja pasar el SVG a PNG (algunos móviles), se usa el SVG ya escalado como imagen
+ im.onload=()=>{try{const c=document.createElement("canvas");c.width=W;c.height=H;const g=c.getContext("2d");g.fillStyle="#fff";g.fillRect(0,0,W,H);g.drawImage(im,0,0,W,H);ok(img(c.toDataURL("image/png")))}catch(e){ok(img(im.src))}};im.onerror=()=>ok(null);im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(s)})}
 async function figuras(R){for(const svg of[...R.querySelectorAll("svg")]){const ancho=svg.closest(".scard")?210:svg.closest(".aci")?340:svg.classList.contains("elev")?90:svg.closest(".two")||svg.closest("[data-f=sec]")?520:690;
  const im=await svgPng(svg,ancho);if(im)svg.replaceWith(im)}}
 function datosTxt(m){const val=e=>e.tagName=="SELECT"?e.selectedOptions[0].text:e.value,lab=e=>e.closest("label").firstChild.textContent.trim();
- const fo=m=="carga"?`<tr><td>DATO</td><td>${$("cDr").textContent||"—"}</td></tr>`:"";
+ const fo=DT[m]&&DT[m].txt?`<tr><td>DATO</td><td>${DT[m].txt}</td></tr>`:"";
  return[...document.querySelectorAll(`#m-${m} > .card:first-child input:not([type=checkbox]), #m-${m} > .card:first-child select`)].filter(e=>e.value!==""&&!(e.closest("[hidden]")||{closest:()=>0}).closest(".card")&&!e.closest("details")&&e.closest("label")&&e.id!="cPre"&&e.id!="fPre"&&e.id!="ePre").map(e=>`<tr><td>${lab(e)}</td><td>${val(e)}</td></tr>`).join("")+fo}
 function repMod(m){const S=document.createElement("section");S.className="rsec";const h=(t,n)=>{const e=document.createElement(n||"h3");e.textContent=t;S.append(e)},add=(t,id)=>{if(t)h(t);S.append(cl(id))};
  h(NOMS[m],"h2");h("Datos de entrada");const tb=document.createElement("table");tb.className="rdat";tb.innerHTML=datosTxt(m);S.append(tb);
@@ -758,7 +792,7 @@ $("pdfGo").onclick=async()=>{const sel=$("pMod").value,act=document.querySelecto
  await html2pdf().set({margin:[10,9,12,9],filename:`HORMID_${mods.join("_")}.pdf`,image:{type:"jpeg",quality:.95},html2canvas:{scale:2,backgroundColor:"#ffffff",useCORS:true},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
   pagebreak:{mode:["css","legacy"],avoid:[".fl",".verd",".kpi","figure","tr",".scard","img",".eq",".cgh"]}}).from(R).save();$("pMsg").textContent="PDF descargado."};
 async function armarRep(mods){const R=document.createElement("div");R.className="rep";const u=["F","L","S","M"].map(d=>UK(d)[0]).join(" · ");
- R.innerHTML=`<div class="rh"><b>HORMID Columnas · Memoria de cálculo</b><span>${$("pAut").value||""}</span><span>${new Date().toLocaleDateString("es-EC")} · NEC-SE-HM / ACI 318-19 · Unidades de resultados: ${u} (sustituciones en kN, mm, MPa)</span></div>`;
+ R.innerHTML=`<div class="rh"><b>HORMID Columnas · Memoria de cálculo</b><span>${[$("pAut").value,$("yA").value?`Nacimiento: ${$("yD").value||"—"}/${$("yM").value||"—"}/${$("yA").value}`:"",$("yC").value?`Cédula: ${$("yC").value}`:""].filter(Boolean).join(" · ")}</span><span>${new Date().toLocaleDateString("es-EC")} · NEC-SE-HM / ACI 318-19 · Unidades de resultados: ${u} (sustituciones en kN, mm, MPa)</span></div>`;
  mods.forEach((m,i)=>{const s=repMod(m);if(i)s.style.breakBefore="page";R.append(s)});
  R.insertAdjacentHTML("beforeend",`<p class="note">Documento generado automáticamente como apoyo académico. Debe revisarlo un profesional responsable.</p>`);await figuras(R);return R}
 $("eSend").onclick=()=>{if(!EO)calcE();if(!EO)return;const{o,E}=EO;hist=[];set("fPu",E.Pu);$("fCarga").value=1;$("fCarga").onchange();set(E.h&&$("eDir").value=="x"?"fMxc":"fMyc",0);set(E.h&&$("eDir").value=="x"?"fMx":"fMy",r2(o.Mc));
@@ -766,7 +800,7 @@ $("eSend").onclick=()=>{if(!EO)calcE();if(!EO)return;const{o,E}=EO;hist=[];set("
 
 // ---------- estado inicial ----------
 document.querySelectorAll("i.u").forEach(e=>e.textContent="("+UK(e.dataset.d)[0]+")");
-set("frec",40);set("fhn",3000);$("cPre").value=0;$("cPre").onchange();$("fPre").value="t2c";$("fPre").onchange();
+set("frec",40);set("fhn",3000);datosIni();if(!DT.carga.aplicar(0)){luces("X",[7.5,6,3]);luces("Y",[6,7]);set("ccm",12.5);set("ccv",7.5);calcC()}$("fPre").value="t2c";$("fPre").onchange();
 </script>
 
 </body></html>
