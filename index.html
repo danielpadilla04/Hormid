@@ -1,5 +1,7 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest"><link rel="apple-touch-icon" href="apple-touch-icon.png"><meta name="theme-color" content="#05060f">
+<meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="HORMID">
 <title>HORMID Columnas v2</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -132,7 +134,7 @@ textarea{background:var(--panel2);color:#fff;border:0;box-shadow:inset 0 0 0 1px
 .rep .aci{grid-template-columns:repeat(2,minmax(0,1fr))}.rep .sgrid{grid-template-columns:repeat(3,minmax(0,1fr))}.rep .two{grid-template-columns:minmax(0,1fr)}
 .rep pre.steps{max-height:none;overflow:visible;font-size:11px;color:#1b1f2a}.rep .tw{overflow:visible}
 .rep .eq{color:#111;font-size:13px}.rep .eq .rs{color:#111;background:rgba(91,47,214,.1)}.rep .fn,.rep .ad b,.rep .sd b,.rep .sp,.rep .kpi div,.rep table.ct td.hl,.rep table.mx td,.rep .vb b,.rep .cgh b,.rep .pc>summary b,.rep .pch b{color:#0b1020}
-.rep .pc{background:#f5f6fa}.rep summary::after{content:none!important}.rep .ps,.rep .pcard,.rep .scard,.rep .kpi,.rep .colc{background:#f7f8fb}
+.rep .pc{background:#f5f6fa}.rep>.ps,.rep>.pc,.rep>.cgrp{margin-bottom:12px}.rep summary::after{content:none!important}.rep .ps,.rep .pcard,.rep .scard,.rep .kpi,.rep .colc{background:#f7f8fb}
 .rep table.rdat{width:auto;font-size:11.5px}.rep table.rdat td{text-align:left;padding:3px 10px 3px 0;white-space:normal}.rep .rin{background:#fff;color:#111;width:56px}
 .rep table.ct thead{display:table-header-group}.rep table.ct td{font-size:10.5px;padding:4px 5px;white-space:normal}.rep table.ct th{font-size:9.5px;padding:4px 5px}
 @media(max-width:600px){#cTab td:nth-child(2),#cTab th:nth-child(2),#cTab td:nth-child(3),#cTab th:nth-child(3),#cTab td:nth-child(6),#cTab th:nth-child(6){display:none}#cTab td,#cTab th{padding:6px 4px;font-size:11.5px;white-space:normal}#cTab th{font-size:10px;letter-spacing:.03em}.rin{width:50px;padding:4px}}
@@ -764,7 +766,9 @@ function svgEsb(o,E){const A_=E.tipo=="a",m1=A_?Math.abs(E.M1):E.m1n+E.m1s,m2=A_
  s+=t(gx,gy-6,`k·lu/r = ${f(o.kl,1)}`,"#d8ecf8","start")+t(X(o.lim),gy-8,`límite ${f(o.lim,1)}`,"#fff");
  return s+"</svg>"}
 // ---------- Reporte PDF ----------
-let H2P=null;const cargaLib=()=>H2P||(H2P=new Promise((ok,no)=>{const sc=document.createElement("script");sc.src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js";sc.onload=ok;sc.onerror=no;document.head.append(sc)}));
+// primero la copia local (funciona sin internet en la app instalada); si no está, la del CDN
+let H2P=null;const js=src=>new Promise((ok,no)=>{const sc=document.createElement("script");sc.src=src;sc.onload=ok;sc.onerror=()=>{sc.remove();no()};document.head.append(sc)});
+const cargaLib=()=>H2P||(H2P=js("html2pdf.bundle.min.js").catch(()=>js("https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js")).catch(e=>{H2P=null;throw e}));
 const NOMS={carga:"1 · Evaluación de cargas y predimensionamiento",flexo:"2 · Flexocompresión biaxial (Bresler)",esb:"3 · Columnas esbeltas (magnificación de momentos)"};
 function cl(id){const n=$(id).cloneNode(true);n.removeAttribute("id");n.querySelectorAll("[id]").forEach(e=>e.removeAttribute("id"));n.querySelectorAll("details").forEach(d=>d.open=true);n.querySelectorAll("button").forEach(b=>b.remove());
  n.querySelectorAll("input").forEach(i=>i.replaceWith(i.value));n.querySelectorAll("p.pt").forEach(p=>{if(/^Toca cada/.test(p.textContent))p.remove()});return n}
@@ -781,26 +785,43 @@ async function figuras(R){for(const svg of[...R.querySelectorAll("svg")]){const 
 function datosTxt(m){const val=e=>e.tagName=="SELECT"?e.selectedOptions[0].text:e.value,lab=e=>e.closest("label").firstChild.textContent.trim();
  const fo=DT[m]&&DT[m].txt?`<tr><td>DATO</td><td>${DT[m].txt}</td></tr>`:"";
  return[...document.querySelectorAll(`#m-${m} > .card:first-child input:not([type=checkbox]), #m-${m} > .card:first-child select`)].filter(e=>e.value!==""&&!(e.closest("[hidden]")||{closest:()=>0}).closest(".card")&&!e.closest("details")&&e.closest("label")&&e.id!="cPre"&&e.id!="fPre"&&e.id!="ePre").map(e=>`<tr><td>${lab(e)}</td><td>${val(e)}</td></tr>`).join("")+fo}
-function repMod(m){const S=document.createElement("section");S.className="rsec";const h=(t,n)=>{const e=document.createElement(n||"h3");e.textContent=t;S.append(e)},add=(t,id)=>{if(t)h(t);S.append(cl(id))};
+// flat: los hijos del bloque se agregan por separado (pasos, columnas, grupos) para poder partir el PDF en trozos pequeños
+function repMod(m){const S=document.createElement("section");S.className="rsec";const h=(t,n)=>{const e=document.createElement(n||"h3");e.textContent=t;S.append(e)},add=(t,id,flat)=>{if(t)h(t);const n=cl(id);if(!flat)return S.append(n);
+ [...n.children].forEach(c=>{const pcs=[...c.querySelectorAll(":scope>details.pc")],tail=pcs.length?[...c.querySelectorAll(":scope>details.pc~*")].filter(x=>!x.matches("details.pc")):[];pcs.concat(tail).forEach(x=>x.remove());S.append(c,...pcs,...tail)})};
  h(NOMS[m],"h2");h("Datos de entrada");const tb=document.createElement("table");tb.className="rdat";tb.innerHTML=datosTxt(m);S.append(tb);
- if(m=="carga"){if(!COLS.length)calcC();add("Planta y áreas tributarias","cPlan");add("Áreas tributarias y carga axial","cTab");add("Procedimiento paso a paso","cSteps");add("Secciones de columnas por piso","cPisos");add("Cuadro de columnas","cFin")}
+ if(m=="carga"){if(!COLS.length)calcC();add("Planta y áreas tributarias","cPlan");add("Áreas tributarias y carga axial","cTab");add("Procedimiento paso a paso","cSteps",1);add("Secciones de columnas por piso","cPisos",1);add("Cuadro de columnas","cFin")}
  if(m=="flexo"){calc(true);add("","fVer");add("Sección transversal","fSvg");add("","fLeg");add("Comprobaciones","fKpi");add("","fChk");add("Distribución y estribos","fChk2");add("Estribos en alzado","fElev");add("","fEst");add("Gráficas de interacción utilizadas","fACI");add("Procedimiento paso a paso","fSteps")}
  if(m=="esb"){calcE();add("","eVer");add("Resultados","eKpi");add("Momentos y esbeltez","eGraf");add("Procedimiento paso a paso","eSteps")}
  return S}
 $("pdfGo").onclick=async()=>{const sel=$("pMod").value,act=document.querySelector("#nav button.on").dataset.m,mods=sel=="all"?["carga","flexo","esb"]:[sel=="act"?act:sel];$("pMsg").textContent="Generando PDF…";
- try{await cargaLib()}catch(e){$("pMsg").textContent="No se pudo cargar el generador de PDF (revisa tu conexión).";return}
- const R=await armarRep(mods);
- await html2pdf().set({margin:[10,9,12,9],filename:`HORMID_${mods.join("_")}.pdf`,image:{type:"jpeg",quality:.95},html2canvas:{scale:2,backgroundColor:"#ffffff",useCORS:true},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
-  pagebreak:{mode:["css","legacy"],avoid:[".fl",".verd",".kpi","figure","tr",".scard","img",".eq",".cgh"]}}).from(R).save();$("pMsg").textContent="PDF descargado."};
+ try{await cargaLib()}catch(e){$("pMsg").textContent="No se pudo cargar el generador de PDF.";return}
+ try{const R=await armarRep(mods);R.style.cssText="position:absolute;left:-10000px;top:0";document.body.append(R);
+  await Promise.all([...R.querySelectorAll("img")].map(i=>i.decode?i.decode().catch(()=>0):0));
+  // Safari (iPhone) no dibuja lienzos gigantes: el reporte se parte en trozos de ~2600 px y cada trozo se agrega al mismo PDF
+  const grupos=[];let hh=0;for(const b of[...R.children]){const bh=b.offsetHeight+16;if(!grupos.length||b.dataset.nuevo||(hh+bh>2600&&hh>0)){grupos.push([]);hh=0}grupos[grupos.length-1].push(b);hh+=bh}
+  R.remove();const ch=grupos.map(g=>{const d=document.createElement("div");d.className="rep";d.append(...g);return d});
+  const name=`HORMID_${mods.join("_")}.pdf`,opt={margin:[10,9,12,9],filename:name,image:{type:"jpeg",quality:.92},html2canvas:{scale:MOVIL?1.5:2,backgroundColor:"#ffffff"},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+   pagebreak:{mode:["css","legacy"],avoid:[".fl",".verd",".kpi","figure","tr",".scard","img",".eq",".cgh"]}};
+  $("pMsg").textContent=`Generando PDF (${ch.length} partes)…`;let w=html2pdf().set(opt).from(ch[0]).toPdf();
+  for(let i=1;i<ch.length;i++)w=w.get("pdf").then(p=>{p.addPage()}).from(ch[i]).toContainer().toCanvas().toPdf();
+  entregar(await w.outputPdf("blob"),name)}catch(e){$("pMsg").textContent="Error al generar el PDF: "+e.message}};
+const MOVIL=/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)||(navigator.platform=="MacIntel"&&navigator.maxTouchPoints>1);
+// en el celular se entrega con el menú Compartir (Guardar en Archivos, WhatsApp…); requiere un toque nuevo del usuario
+function entregar(blob,name){const url=URL.createObjectURL(blob),file=new File([blob],name,{type:"application/pdf"});
+ if(MOVIL&&navigator.canShare&&navigator.canShare({files:[file]})){$("pMsg").innerHTML=`PDF listo. <button class="btn sm" id="pShare">Guardar / compartir</button> <a href="${url}" target="_blank" style="color:var(--blue)">Abrir</a>`;
+  $("pShare").onclick=()=>navigator.share({files:[file],title:name}).catch(()=>{});return}
+ const a=document.createElement("a");a.href=url;a.download=name;document.body.append(a);a.click();a.remove();$("pMsg").innerHTML=`PDF descargado. <a href="${url}" target="_blank" style="color:var(--blue)">Abrir</a>`}
 async function armarRep(mods){const R=document.createElement("div");R.className="rep";const u=["F","L","S","M"].map(d=>UK(d)[0]).join(" · ");
  R.innerHTML=`<div class="rh"><b>HORMID Columnas · Memoria de cálculo</b><span>${[$("pAut").value,$("yA").value?`Nacimiento: ${$("yD").value||"—"}/${$("yM").value||"—"}/${$("yA").value}`:"",$("yC").value?`Cédula: ${$("yC").value}`:""].filter(Boolean).join(" · ")}</span><span>${new Date().toLocaleDateString("es-EC")} · NEC-SE-HM / ACI 318-19 · Unidades de resultados: ${u} (sustituciones en kN, mm, MPa)</span></div>`;
- mods.forEach((m,i)=>{const s=repMod(m);if(i)s.style.breakBefore="page";R.append(s)});
+ mods.forEach((m,i)=>{const s=[...repMod(m).children];if(i)s[0].dataset.nuevo=1;R.append(...s)});
  R.insertAdjacentHTML("beforeend",`<p class="note">Documento generado automáticamente como apoyo académico. Debe revisarlo un profesional responsable.</p>`);await figuras(R);return R}
 $("eSend").onclick=()=>{if(!EO)calcE();if(!EO)return;const{o,E}=EO;hist=[];set("fPu",E.Pu);$("fCarga").value=1;$("fCarga").onchange();set(E.h&&$("eDir").value=="x"?"fMxc":"fMyc",0);set(E.h&&$("eDir").value=="x"?"fMx":"fMy",r2(o.Mc));
  if(!v("fh")){set("ffc",E.fc);set("fh",$("eDir").value=="x"?E.h:E.b);set("fb",$("eDir").value=="x"?E.b:E.h);const P=leerF();ponerF({...P,...(arm2(P,.01*P.h*P.b)||{})})}show("flexo");calc()};
 
 // ---------- estado inicial ----------
 document.querySelectorAll("i.u").forEach(e=>e.textContent="("+UK(e.dataset.d)[0]+")");
+// app instalable: guarda la página y el generador de PDF para usarlos sin internet (solo cuando se sirve por https)
+if("serviceWorker"in navigator&&location.protocol=="https:")navigator.serviceWorker.register("sw.js").catch(()=>{});
 set("frec",40);set("fhn",3000);datosIni();if(!DT.carga.aplicar(0)){luces("X",[7.5,6,3]);luces("Y",[6,7]);set("ccm",12.5);set("ccv",7.5);calcC()}$("fPre").value="t2c";$("fPre").onchange();
 </script>
 
